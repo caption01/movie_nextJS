@@ -1,88 +1,78 @@
-import React from 'react'
-import Head from 'next/head'
-import Nav from '../components/nav'
+import React, { useState, useEffect } from 'react'
+import SideMenu from '../components/sideMenu'
+import Carousel from '../components/carousel'
+import MovieList from '../components/movieList'
 
-const Home = () => (
-  <div>
-    <Head>
-      <title>Home</title>
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
 
-    <Nav />
+import { getMovies, getCategories } from '../actions/index'
 
-    <div className="hero">
-      <h1 className="title">Welcome to Next.js!</h1>
-      <p className="description">
-        To get started, edit <code>pages/index.js</code> and save to reload.
-      </p>
+class Home extends React.Component {
 
-      <div className="row">
-        <a href="https://nextjs.org/docs" className="card">
-          <h3>Documentation &rarr;</h3>
-          <p>Learn more about Next.js in the documentation.</p>
-        </a>
-        <a href="https://nextjs.org/learn" className="card">
-          <h3>Next.js Learn &rarr;</h3>
-          <p>Learn about Next.js by following an interactive tutorial!</p>
-        </a>
-        <a
-          href="https://github.com/zeit/next.js/tree/master/examples"
-          className="card"
-        >
-          <h3>Examples &rarr;</h3>
-          <p>Find other example boilerplates on the Next.js GitHub.</p>
-        </a>
+  // to get initalprops link by _app form nextJS
+  static getInitialProps = async () => {
+    const movies = await getMovies()
+    const categories = await getCategories()
+
+    const image = movies.map(movie => {
+      return {
+        id: `image-${movie.id}`,
+        url: movie.cover,
+        name: movie.name
+      }
+    })
+      return { movies, categories, image }
+  }
+
+  constructor(props){
+    super(props)
+    this.state = {
+      filter: ''
+    }
+  }
+
+  
+  changeCategory = (category) => {
+    this.setState({filter: category})
+  }
+
+  filterMovies = (movies) => {
+
+    return movies.filter((movie) => {
+      return movie.genre && movie.genre.includes(this.state.filter)
+    })
+  }
+
+
+  render(){
+
+    const { movies, image, categories } = this.props
+
+    return(
+      <div >
+        <div className="container">
+            <div className="row">
+              <div className="col-lg-3">
+                <SideMenu 
+                appName={'Movie DB'}
+                categories={categories}
+                changeCategory={this.changeCategory}
+                activeCategory={this.state.filter}
+                />
+              </div>
+              <div className="col-lg-9">
+                <Carousel images={image} />
+                <h1>Display: {this.state.filter}</h1>
+                <div className="row">
+                  <MovieList movies={this.filterMovies(movies) || []} />
+                </div>
+              </div>
+            </div>
+          </div>
       </div>
-    </div>
+      )
 
-    <style jsx>{`
-      .hero {
-        width: 100%;
-        color: #333;
-      }
-      .title {
-        margin: 0;
-        width: 100%;
-        padding-top: 80px;
-        line-height: 1.15;
-        font-size: 48px;
-      }
-      .title,
-      .description {
-        text-align: center;
-      }
-      .row {
-        max-width: 880px;
-        margin: 80px auto 40px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-      }
-      .card {
-        padding: 18px 18px 24px;
-        width: 220px;
-        text-align: left;
-        text-decoration: none;
-        color: #434343;
-        border: 1px solid #9b9b9b;
-      }
-      .card:hover {
-        border-color: #067df7;
-      }
-      .card h3 {
-        margin: 0;
-        color: #067df7;
-        font-size: 18px;
-      }
-      .card p {
-        margin: 0;
-        padding: 12px 0 0;
-        font-size: 13px;
-        color: #333;
-      }
-    `}</style>
-  </div>
-)
+    
+  }
+}
 
 export default Home
